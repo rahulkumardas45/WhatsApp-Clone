@@ -56,7 +56,7 @@ isVerified: {
     default:false
 },
 
-agree: {
+agreed: {
     type: Boolean,
     default: false
 }

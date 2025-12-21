@@ -123,8 +123,11 @@ const verifiedotp = async (req, res) => {
 
 
 const updateProfile = async(req,res) =>{
-    const { username, agree, about} = req.body;
-    const userId = req.user.userId;
+    const { username, agreed, about} = req.body;
+   const userId =
+  req.user?.userId ||
+  req.user?.id ||        // 👈 ye add karo
+  req.user?._id;
 
     try {
         const user = await User.findById(userId);
@@ -149,8 +152,8 @@ const updateProfile = async(req,res) =>{
         if(about){
             user.about = about;
         }
-        if(agree){
-            user.agree = agree;
+        if(agreed){
+            user.agreed = agreed;
         }
         await user.save();
      

@@ -56,8 +56,8 @@ export const Sidebar = () => {
        
         <Link to='/user-profile' className={`${isMobile ? "" : "mb-8"} ${activeTab === 'profile' && "bg-gray-300 shadow-sm p-2 rounded-full"} focus:outline-none`}>
          {
-          user?.profilePicture ? (
-            <img src={user?.profilePicture} alt="user"
+          user?.profilepicture ? (
+            <img src={user?.profilepicture} alt="user"
              className='h-6 w-6 rounded-full'
             />
           ):(

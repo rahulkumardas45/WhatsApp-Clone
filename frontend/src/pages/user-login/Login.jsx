@@ -202,6 +202,7 @@ const Login = () => {
       setProfilePicture(URL.createObjectURL(file))
     }
   }
+
   const onProfileSubmit = async(data) => {
     try {
       setLoading(true)
@@ -211,12 +212,17 @@ const Login = () => {
       if (profilePicture) {
         formData.append("profilepicture", profilePictureFile)
       } else {
-        formData.append("profilePicture", selectedAvatar)
+        formData.append("profilepicture", selectedAvatar)
       }
-      await updateUserProfile(formData);
-      toast.success("welcome back to whatsapp")
-      navigate('/')
-      resetLoginState()
+      const res = await updateUserProfile(formData);
+
+    console.log("PROFILE UPDATE RESPONSE:", res);
+
+    if (res?.status === "success") {
+      toast.success("Welcome back to WhatsApp");
+      resetLoginState();
+      navigate("/", { replace: true })
+    }
 
     } catch (error) {
       console.log(error)
