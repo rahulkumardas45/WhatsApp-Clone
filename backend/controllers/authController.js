@@ -173,10 +173,10 @@ const updateProfile = async(req,res) =>{
 const checkAuthenticated = async (req, res) => {
   try {
 
-      if (!req.user || !req.user.userId) {
-      return response(res, 401, 'Unauthorized! Please login before accessing  app');
-    }
-    const userId = req.user.userId;
+    //   if (!req.user || !req.user.userId) {
+    //   return response(res, 401, 'Unauthorized! Please login before accessing  app');
+    // }
+    const userId = req.user?.userId || req.user?.id || req.user?._id;
 
     const user = await User.findById(userId);
     if (!user) {
