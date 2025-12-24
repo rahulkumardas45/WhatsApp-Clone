@@ -11,6 +11,7 @@ const onlineUsers = new Map();
 const typingUsers = new Map();
 
 const initializeSocket = (server) => {
+    // sever instance
     const io = new Server(server, {
         cors: {
             origin: process.env.FRONTEND_URL,
