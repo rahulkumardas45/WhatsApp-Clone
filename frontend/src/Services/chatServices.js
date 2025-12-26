@@ -10,7 +10,7 @@ export const initializeSocket = () => {
 
 
     const user = useUserStore.getState().user;
-    const BACKEND_URL = process.env.BACKEND_URL;
+    const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
     socket = io(BACKEND_URL, {
         withCredentials: true,

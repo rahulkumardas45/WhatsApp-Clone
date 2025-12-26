@@ -9,7 +9,8 @@ export const sendOtp = async( phoneNumber, phoneSuffix, email )=>{
             phoneSuffix,
             email
         });
-
+       
+        console.log(response)
         return response.data;
 
     } catch (error) {

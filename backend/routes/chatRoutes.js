@@ -6,7 +6,7 @@ const { multerMiddleware } = require('../config/cloudinary');
 const  router = express.Router();
 
 // protected route
-router.post('/sendmessage', authMiddleware,multerMiddleware, chatController.sendMessage);
+router.post('/send-message', authMiddleware,multerMiddleware, chatController.sendMessage);
 router.get('/conversations', authMiddleware, chatController.getConversations);
 router.get('/conversations/:conversationId', authMiddleware, chatController.getMessages);
 
