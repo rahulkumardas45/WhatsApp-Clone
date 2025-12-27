@@ -252,6 +252,7 @@ useEffect(() => {
   // console.log("this is group message",groupedMessages);
 
   const handleReaction = (messageId, emoji) => {
+    console.log(messageId,emoji)
     addReaction(messageId, emoji)
   }
 
@@ -462,7 +463,7 @@ useEffect(() => {
      onChange={(e)=>setMessage(e.target.value)}
      onKeyDown = {(e)=>{
       if(e.key === "Enter" && !e.shiftKey){
-        e.preventDefault();
+       
         handleSendMessage();
       } 
      }

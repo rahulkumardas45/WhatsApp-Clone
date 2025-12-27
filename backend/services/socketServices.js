@@ -184,18 +184,21 @@ const initializeSocket = (server) => {
 
 
         // add or update reactions on message
-        socket.on("add_recation", async ({ messageId, emoji, userId, reactionUserId }) => {
+        socket.on( "add_reaction", async ({ messageId, emoji, userId:reactionUserId }) => {
             try {
 
                 const message = await Message.findById(messageId);
                 if (!message) return;
 
+           
+            
                 const existingIndex = message.reactions.findIndex(
-                    (reaction) => reaction.user.toString() === reactionUserId
+                    (r) => r.user.toString() === reactionUserId
                 )
-
+              
+         
                 if (existingIndex > -1) {
-                    const existing = message.reactions(existingIndex);
+                    const existing = message.reactions[existingIndex];
                     if (existing.emoji === emoji) {
                         // remove reaction
                         message.reactions.splice(existingIndex, 1);
@@ -225,7 +228,7 @@ const initializeSocket = (server) => {
                     messageId,
                     reactions: populatedMessage.reactions,
                 }
-
+               
                 const senderSocket = onlineUsers.get(populatedMessage.sender._id.toString());
                 const receiverSocket = onlineUsers.get(populatedMessage.receiver._id.toString());
 

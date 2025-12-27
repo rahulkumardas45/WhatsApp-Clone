@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react'
 import { format } from 'date-fns'
-import { FaCheck, FaCheckDouble, FaPlus, FaSmile } from 'react-icons/fa';
+import { FaCheck, FaCheckDouble, FaPlus, FaRegCopy, FaSmile } from 'react-icons/fa';
 import {HiDotsVertical} from "react-icons/hi"
 import useOutsideclick from '../../Hooks/useOutSideClick';
 import EmojiPicker from 'emoji-picker-react';
@@ -167,6 +167,39 @@ useOutsideclick(optionRef, ()=>{
     </div>
   )}
 
+
+
+  {showOptions && (
+      <div className={`absolute top-8 right-1 z-50 w-36 rounded-xl shadow-lg py-2 text-sm ${ theme === 'dark' ? "bg-[#1d1f1f] text-white" : "bg-gray-100 text-black"}`}>
+        <button
+          onClick={()=>{
+            if(message.contentType === 'text'){
+              navigator.clipboard.writeText(message.content)
+            }
+            setShowOptions(false)
+          }}
+
+          className='flex items-center w-full px-4 py-2 gap-3 rounded-lg'
+        >
+          <FaRegCopy size={14}/>
+          <span>Copy</span>
+        </button>
+
+        {isUserMessage && (
+           <button
+          onClick={()=>{
+            deleteMessage(message._id)
+            setShowOptions(false)
+          }}
+
+          className='flex items-center w-full px-4 py-2 gap-3 rounded-lg text-red-600'
+        >
+          <FaRegCopy  className="text-red-600"size={14}/>
+          <span>Delete</span>
+        </button>
+        )}
+      </div>
+  )}
       </div>
      </div>
   )

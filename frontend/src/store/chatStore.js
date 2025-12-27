@@ -147,12 +147,12 @@ export const useChatStore = create(
          setCurrentUser: (user) => set({ currentUser: user }),
 
          fetchConversations: async () => {
-            set({loading: true, error: null });
+            set({ loading: true, error: null });
             try {
                const { data } = await axiosInstance.get("/chats/conversations");
-               set({conversations: data, loading: false })
-               
-                get().initsocketListners();
+               set({ conversations: data, loading: false })
+
+               get().initsocketListners();
                return data;
 
             } catch (error) {
@@ -206,76 +206,76 @@ export const useChatStore = create(
          // send to real time message 
 
          sendMessage: async (formData) => {
-             const senderId = formData.get("senderId");
-             const receiverId = formData.get("receiverId");
-             const media = formData.get("media");
-             const content = formData.get("content");
-             const messageStatus = formData.get("messageStaus");
+            const senderId = formData.get("senderId");
+            const receiverId = formData.get("receiverId");
+            const media = formData.get("media");
+            const content = formData.get("content");
+            const messageStatus = formData.get("messageStaus");
 
 
-             const socket = getSocket();
-             const {conversations} = get();
+            const socket = getSocket();
+            const { conversations } = get();
 
-             let conversationId = null;
-             if(conversations?.data?.length > 0){
-                 const conversation = conversations.data.find((conv) =>
-                conv.participants.some((p) => p._id === senderId) && 
-                 conv.participants.some((p) => p._id === receiverId)
-               
+            let conversationId = null;
+            if (conversations?.data?.length > 0) {
+               const conversation = conversations.data.find((conv) =>
+                  conv.participants.some((p) => p._id === senderId) &&
+                  conv.participants.some((p) => p._id === receiverId)
+
                );
 
-               if(conversation){
+               if (conversation) {
                   conversationId = conversation._id;
-                  set({currentConversation: conversationId})
+                  set({ currentConversation: conversationId })
                }
-             }
+            }
 
-             //temp message before actula response 
+            //temp message before actula response 
 
-             const tempId = `temp-${Date.now()}`;
-             const optimisticMessage = {
-               _id:tempId,
-               sender:{_id:senderId},
-               receiver:{_id:receiverId},
-               conversation:conversationId,
-               imageOrVideoUrl : media && typeof media !== 'string' ? URL.createObjectURL(media):null,
+            const tempId = `temp-${Date.now()}`;
+            const optimisticMessage = {
+               _id: tempId,
+               sender: { _id: senderId },
+               receiver: { _id: receiverId },
+               conversation: conversationId,
+               imageOrVideoUrl: media && typeof media !== 'string' ? URL.createObjectURL(media) : null,
                content: content,
-               contentType : media ? media.type.startsWith("image") ? "image" : "video" : "text",
+               contentType: media ? media.type.startsWith("image") ? "image" : "video" : "text",
                createdAt: new Date().toISOString(),
                messageStatus
 
-             };
+            };
 
-             set((state) => ({
+            set((state) => ({
                messages: [...state.messages, optimisticMessage]
-             }));
+            }));
 
-  // api call 
-             try {
-               const {data} = await axiosInstance.post("/chats/send-message",formData,
-                  {headers: {"Content-Type" : "multipart/form-data"}}
+            // api call 
+            try {
+               const { data } = await axiosInstance.post("/chats/send-message", formData,
+                  { headers: { "Content-Type": "multipart/form-data" } }
                );
 
                const messageData = data.data || data;
 
-               
-  // repalce otimastic message with the real one
+
+               // repalce otimastic message with the real one
                set((state) => ({
                   messages: state.messages.map((msg) => msg._id === tempId ? messageData : msg)
                }));
 
                return messageData;
 
-             } catch (error) {
+            } catch (error) {
 
                console.error("error to  sending the message ", error);
                set((state) => ({
 
-                  messages: state.messages.map((msg) => msg._id === tempId ? {...msg, messageStatus: "failed"} : msg),
-                  error:error?.response?.data?.message || error?.message,
+                  messages: state.messages.map((msg) => msg._id === tempId ? { ...msg, messageStatus: "failed" } : msg),
+                  error: error?.response?.data?.message || error?.message,
                }))
                throw error;
-             }
+            }
 
 
 
@@ -394,9 +394,11 @@ export const useChatStore = create(
 
 
          deleteMessage: async (messageId) => {
-
+            
             try {
+
                await axiosInstance.delete(`/chats/messages/${messageId}`);
+
                set((state) => ({
                   messages: state.messages?.filter((msg) => msg?._id !== messageId)
                }))
