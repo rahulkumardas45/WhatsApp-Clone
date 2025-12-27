@@ -7,6 +7,7 @@ import { isToday, isYesterday, format } from 'date-fns'
 import { FaArrowLeft, FaEllipsisV, FaFile, FaImage, FaLock, FaPaperclip, FaPaperPlane, FaSmile, FaTimes, FaVideo } from 'react-icons/fa'
 import MessageBubble from './MessageBubble';
 import EmojiPicker from 'emoji-picker-react';
+import useOutsideclick from '../../Hooks/useOutSideClick';
 
 const isValidate = (date) => {
   return date instanceof Date && !isNaN(date)
@@ -56,6 +57,11 @@ export const ChatWindow = ({ selectedContact, setSelectedContact }) => {
   const isTyping = isUserTyping(selectedContact?._id);
 
 
+useOutsideclick(emojiPickerRef, () => {
+  if (showEmojiPicker) setShowEmojipicker(false);
+});
+
+
 
   useEffect(() => {
     if (selectedContact?._id && conversations?.data?.length > 0) {
@@ -77,35 +83,60 @@ export const ChatWindow = ({ selectedContact, setSelectedContact }) => {
 
   // scroll automatic me chat start
 
-  const scrollToBottom = () => {
-    messageEndRef.current?.scrollIntoView({ behavior: "auto" })
+  // const scrollToBottom = () => {
+  //   messageEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  // }
+
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [messages])
+
+
+
+
+
+  // useEffect(() => {
+  //   if (message && selectedContact) {
+  //     startTyping(selectedContact?._id);
+  //     if (typingTimeoutRef.current) {
+  //       clearTimeout(typingTimeoutRef.current)
+  //     }
+
+  //     typingTimeoutRef.current = setTimeout(() => {
+  //       stopTyping(selectedContact?._id)
+
+  //     }, 2000);
+  //   }
+  //   return () => {
+  //     if (typingTimeoutRef.current) {
+  //       clearTimeout(typingTimeoutRef.current)
+  //     }
+  //   }
+
+  // }, [message, selectedContact, startTyping, stopTyping])
+
+  useEffect(() => {
+  if (!selectedContact?._id) return;
+
+  if (message) {
+    startTyping(selectedContact._id);
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    typingTimeoutRef.current = setTimeout(() => {
+      stopTyping(selectedContact._id);
+    }, 2000);
   }
 
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages])
-
-
-  useEffect(() => {
-    if (message && selectedContact) {
-      startTyping(selectedContact?._id);
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current)
-      }
-
-      typingTimeoutRef.current = setTimeout(() => {
-        stopTyping(selectedContact?._id)
-
-      }, 2000);
+  return () => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
     }
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current)
-      }
-    }
+  };
+}, [message, selectedContact?._id]);
 
-  }, [message, selectedContact, startTyping, stopTyping])
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -204,7 +235,21 @@ export const ChatWindow = ({ selectedContact, setSelectedContact }) => {
 
   ) : {};
 
-  console.log("this is group message",groupedMessages);
+
+  useEffect(() => {
+  messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+}, [groupedMessages]);
+
+
+useEffect(() => {
+  return () => {
+    if (filePreview) {
+      URL.revokeObjectURL(filePreview);
+    }
+  };
+}, [filePreview]);
+
+  // console.log("this is group message",groupedMessages);
 
   const handleReaction = (messageId, emoji) => {
     addReaction(messageId, emoji)
@@ -288,33 +333,45 @@ export const ChatWindow = ({ selectedContact, setSelectedContact }) => {
       </div>
       
      {/* 2. beech ka section jaha message show hoga */}
-      <div className={`flex-1 p-4 overflow-y-auto ${theme === 'dark' ? "bg-[#191a1a]" : "bg-[rgb(241,236,229)]"}`}>
-        {Object.entries(groupedMessages).map(
-          ([date,msgs]) => (
-            <React.Fragment key ={date}>
-             {renderDateSeparator(new Date(date))}
-             {
-              msgs.filter(
-                (msg) => msg?.conversation?._id?.toString() ===
-    selectedContact?.conversation?._id?.toString()
-              ).map((msg) =>(
-                <MessageBubble
-                key={msg._id || msg.tempId}
-                message={msg}
-                theme={theme}
-                currentUser={user}
-                onReact={handleReaction}
-                deleteMessage={deleteMessage}
-                />
-              ) )
-             }
+     
+      <div
+  className={`flex-1 p-4 overflow-y-auto space-y-2 ${
+    theme === "dark" ? "bg-[#191a1a]" : "bg-[rgb(241,236,229)]"
+  }`}
+>
+  {Object.entries(groupedMessages)
+    .map(([date, msgs]) => {
+      // FILTER FIRST (important)
+      const filteredMsgs = msgs.filter(
+        (msg) =>
+          msg?.conversation?._id?.toString() ===
+          selectedContact?.conversation?._id?.toString()
+      );
 
-            </React.Fragment>
-          )
-        )}
+      if (filteredMsgs.length === 0) return null;
 
-<div ref={messageEndRef}/> 
-      </div>
+      return (
+        <React.Fragment key={date}>
+          {renderDateSeparator(new Date(date))}
+
+          {filteredMsgs.map((msg) => (
+            <MessageBubble className='mr-0'
+              key={msg._id || msg.tempId}
+              message={msg}
+              theme={theme}
+              currentUser={user}
+              onReact={handleReaction}
+              deleteMessage={deleteMessage}
+            />
+          ))}
+        </React.Fragment>
+      );
+    })}
+
+  {/* AUTO SCROLL */}
+  <div ref={messageEndRef} />
+</div>
+
   {/* after selecting file file preview ui design */}
   {filePreview && (
     <div className='relative p-2'>
@@ -403,8 +460,9 @@ export const ChatWindow = ({ selectedContact, setSelectedContact }) => {
      <input type="text"
      value={message}
      onChange={(e)=>setMessage(e.target.value)}
-     onKeyPress={(e)=>{
-      if(e.key === "Enter"){
+     onKeyDown = {(e)=>{
+      if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
         handleSendMessage();
       } 
      }
