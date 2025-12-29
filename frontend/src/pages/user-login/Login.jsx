@@ -210,9 +210,9 @@ const Login = () => {
       formData.append("username", data.username)
       formData.append("agreed", data.agreed)
       if (profilePicture) {
-        formData.append("profilepicture", profilePictureFile)
+        formData.append("media", profilePictureFile)
       } else {
-        formData.append("profilepicture", selectedAvatar)
+        formData.append("media", selectedAvatar)
       }
       const res = await updateUserProfile(formData);
 

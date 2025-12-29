@@ -38,7 +38,6 @@ app.use(bodyParser.urlencoded({ extended: true })); // to parse urlencoded data
 //databse connection
   connectdb();
 
-
 // create http server
 const server = http.createServer(app);
 // initialize socket
@@ -63,3 +62,5 @@ app.use('/api/status', statusRoutes);
 server.listen(PORT, ()=>{
     console.log('server is running at port', PORT);
 })
+
+

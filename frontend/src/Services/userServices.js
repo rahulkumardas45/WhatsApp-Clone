@@ -39,10 +39,15 @@ export const verifyOtp = async( phoneNumber, phoneSuffix, otp, email )=>{
 
 }
 
-export const updateUserProfile = async( updateData )=>{
+export const updateUserProfile = async( updateData, config = {})=>{
     try {
         
-        const response = await axiosInstance.put('/auth/update-profile', updateData);
+        const response = await axiosInstance.put('/auth/update-profile', updateData,{
+            
+        ...config,          // ✅ onUploadProgress yahin se pass hoga
+      
+
+        });
 
         return response.data;
 

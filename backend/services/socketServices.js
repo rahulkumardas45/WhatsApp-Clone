@@ -13,6 +13,7 @@ const typingUsers = new Map();
 const initializeSocket = (server) => {
     // sever instance
     const io = new Server(server, {
+
         cors: {
             origin: process.env.FRONTEND_URL,
             credentials: true,
@@ -20,9 +21,8 @@ const initializeSocket = (server) => {
         },
 
         pingTimeout: 60000, // disconnect intactive users or sockets afetr 60s
-
     });
-
+    
     //when the new connections are established
 
     io.on("connection", (socket) => {
