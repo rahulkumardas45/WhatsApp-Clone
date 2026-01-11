@@ -25,7 +25,7 @@ const MessageBubble = ({ message, theme, onReact, currentUser, deleteMessage }) 
   const isUserMessage = message?.sender?._id === currentUser?._id;
 
 
-
+console.log("Message Data:", message.contentType, message.imageOrVideoUrl);
 
   const bubbleClass = isUserMessage ? 'chat-end' : 'chat-start'
 
@@ -68,8 +68,18 @@ useOutsideclick(optionRef, ()=>{
 
           {message.contentType === 'image' && (
             <div>
-              <img src={message.imageOrVideoUrl} alt="imagesand-video"
+              <img src={message.imageOrvideoUrl || message.imageOrVideoUrl} alt="imageurl"
 
+                className='rounded-lg max-w-xs'
+              />
+              <p className='mt-1'>{message.content}</p>
+            </div>
+          )}
+
+          {message.contentType === 'video' && (
+            <div>
+              <video src={message.imageOrVideoUrl} alt="video"
+                 controls
                 className='rounded-lg max-w-xs'
               />
               <p className='mt-1'>{message.content}</p>
@@ -84,7 +94,7 @@ useOutsideclick(optionRef, ()=>{
             <>
               {message.messageStatus === "send" && <FaCheck size={12} />}
               {message.messageStatus === "delivered" && <FaCheckDouble size={12} />}
-              {message.messageStatus === "read" && <FaCheckDouble size={12} className='text-blue-900' />}
+              {message.messageStatus === "read" && <FaCheckDouble size={12} className='text-blue-700' />}
             </>
           )}
         </div>
@@ -92,7 +102,6 @@ useOutsideclick(optionRef, ()=>{
            <button 
             onClick={() => setShowOptions((prev) => !prev)}
             className={`p-1 rounded-full ${theme === 'dark' ? "text-white" : "text-gray-800"}`}
-
            >
           <HiDotsVertical size={18}/>
            </button>

@@ -8,6 +8,10 @@ import { FaArrowLeft, FaEllipsisV, FaFile, FaImage, FaLock, FaPaperclip, FaPaper
 import MessageBubble from './MessageBubble';
 import EmojiPicker from 'emoji-picker-react';
 import useOutsideclick from '../../Hooks/useOutSideClick';
+import VideoCallManager from '../VideoCall/VideoCallManager';
+
+import { getSocket } from '../../Services/chatServices';
+import useVideoCallStore from '../../store/videoCallStore';
 
 const isValidate = (date) => {
   return date instanceof Date && !isNaN(date)
@@ -28,6 +32,7 @@ export const ChatWindow = ({ selectedContact, setSelectedContact }) => {
 
   const { theme } = useThemeStore();
   const { user } = useUserStore();
+  const socket = getSocket();
 
 
   // sare message and chat ko import karo from chat store se
@@ -144,7 +149,7 @@ useOutsideclick(emojiPickerRef, () => {
       setSelectedFile(file);
       setShowFileMenu(false);
 
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
         setFilePreview(URL.createObjectURL(file))
       }
 
@@ -171,6 +176,7 @@ useOutsideclick(emojiPickerRef, () => {
       }
 
       if (!message.trim() && !selectedFile) return;
+
       await sendMessage(formData);
 
       //clear state
@@ -257,6 +263,21 @@ useEffect(() => {
   }
 
 
+const handleVideoCall = ()=>{
+   if(selectedContact && online){
+      const {initiateCall} = useVideoCallStore.getState();
+
+      const avatar = selectedContact?.profilepicture;
+      initiateCall(
+        selectedContact?._id,
+        selectedContact?.username,
+        avatar,
+        "video"
+      )
+   }else{
+    alert("User is offline cannot initiate call")
+   }
+}
   
 
   if (!selectedContact) {
@@ -290,6 +311,7 @@ useEffect(() => {
   }
 
   return (
+    <>
     <div className='flex-1 h-screen w-full flex flex-col'>
 
       {/* 1.headre section of th ui profileimage and call icon in flex on the top */}
@@ -321,8 +343,12 @@ useEffect(() => {
         </div>
 
         <div className='flex items-center space-x-4'>
-          <button className='focus:outline-none'>
-           <FaVideo className='h-5 w-5'/>
+          <button className='focus:outline-none'
+           onClick={handleVideoCall}
+           
+          >
+
+           <FaVideo className='h-5 w-5  text-green-500 hover:text-green-600'/>
           </button>
 
           <button className='focus:outline-none'>
@@ -376,9 +402,21 @@ useEffect(() => {
   {/* after selecting file file preview ui design */}
   {filePreview && (
     <div className='relative p-2'>
-      <img src={filePreview} alt="file-preview"
+  {
+    selectedFile?.type.startsWith("video/") ? (
+   <video
+    src={filePreview}
+    controls
+    className='w-80 object-cover rounded shadow-lg mx-auto'
+   />
+    ): (
+<img src={filePreview} alt="file-preview"
         className='w-80 object-cover rounded shadow-lg mx-auto'
       />
+    )
+  }
+
+
       <button
         onClick={()=>{
           setSelectedFile(null);
@@ -479,6 +517,9 @@ useEffect(() => {
   </div>
     </div>
 
+    <VideoCallManager socket={socket}/>
+
+</>
 
   )
 }

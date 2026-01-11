@@ -67,6 +67,8 @@ exports.sendMessage = async (req, res) => {
             messageStatus: messageStatus || 'sent'
         })
 
+        console.log(message);
+        
         await message.save();
 
         if (message?.content) {
@@ -95,8 +97,7 @@ exports.sendMessage = async (req, res) => {
 
         }
 
-
-
+     
 
 
         return response(res, 200, "message sent successfully", populatedMessage);

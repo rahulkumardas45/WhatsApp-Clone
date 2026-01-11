@@ -5,7 +5,9 @@ import { updateUserProfile } from '../Services/userServices';
 import { toast } from 'react-toastify'
 import { Layout } from './Layout';
 import { motion } from 'framer-motion'
-import { FaCamera } from 'react-icons/fa';
+import { FaCamera, FaCheck, FaPencilAlt, FaSmile } from 'react-icons/fa';
+import { MdCancel } from 'react-icons/md';
+import EmojiPicker from 'emoji-picker-react';
 
 
 export const UserDetails = () => {
@@ -207,8 +209,120 @@ export const UserDetails = () => {
                <span  className='w-full px-3 py-2'>{user?.username || name}</span>
                 )}
 
-                {isEditingName ? "":""}
+                {isEditingName ? (
+              <>
+              <button  
+         onClick={()=>handleSave("name")}
+         className='ml-2 focus:outline-none'
+      >
+  <FaCheck className='h-5 w-5 text-green-500'/>
+      </button>
+
+      <button  
+         onClick={()=>setShowNameEmoji(!showNameEmoji)}
+         className='ml-2 focus:outline-none'
+      >
+  <FaSmile className='h-5 w-5 text-yellow-500'/>
+      </button>
+
+       <button  
+         onClick={()=>{
+          setIsEditingName(false)
+          setShowNameEmoji(false)
+         }}
+         className='ml-2 focus:outline-none'
+      >
+  <MdCancel className='h-5 w-5 text-gray-500'/>
+      </button>
+              </>
+
+                ):(
+      <button  
+         onClick={()=>setIsEditingName(!isEditingName)}
+         className='ml-2 focus:outline-none'
+      >
+  <FaPencilAlt  className='h-5 w-5 text-gray-500'/>
+      </button>
+                )}
                </div>
+  
+
+  {showNameEmoji && (
+     <div className='absolute z-10 -top-80'>
+       <EmojiPicker
+         onEmojiClick={(emoji) => hanldeEmojiSelect(emoji,"name")}
+       />
+     </div>
+  ) }
+
+            </div>
+
+            <div className={`relative p-4 ${theme === 'dark' ? "bg-gray-800":"bg-white"} shadow-sm rounded-lg`}>
+               <label
+               htmlFor='name'
+               className='block text-sm font-medium mb-1 text-gray-500 text-start'
+               >
+                About
+               </label>
+               <div className='flex items-center'>
+                {isEditingAbout ? (
+                    <input
+                      id='about'
+                      type='text'
+                      value={about}
+                      onChange={(e)=> setAbout(e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${theme === 'dark' ? "bg-gray-700 text-white": "bg-gray-100 text-black"}`}
+                    />
+                ):(
+               <span  className='w-full px-3 py-2'>{user?.about || about}</span>
+                )}
+
+                {isEditingAbout ? (
+              <>
+              <button  
+         onClick={()=>handleSave("about")}
+         className='ml-2 focus:outline-none'
+      >
+  <FaCheck className='h-5 w-5 text-green-500'/>
+      </button>
+
+      <button  
+         onClick={()=>setShowAboutEmoji(!showAboutEmoji)}
+         className='ml-2 focus:outline-none'
+      >
+  <FaSmile className='h-5 w-5 text-yellow-500'/>
+      </button>
+
+       <button  
+         onClick={()=>{
+          setIsEditingAbout(false)
+          setShowAboutEmoji(false)
+         }}
+         className='ml-2 focus:outline-none'
+      >
+  <MdCancel className='h-5 w-5 text-gray-500'/>
+      </button>
+              </>
+
+                ):(
+      <button  
+         onClick={()=>setIsEditingAbout(!isEditingAbout)}
+         className='ml-2 focus:outline-none'
+      >
+  <FaPencilAlt  className='h-5 w-5 text-gray-500'/>
+      </button>
+                )}
+               </div>
+  
+
+  {showAboutEmoji && (
+     <div className='absolute z-10 -top-80'>
+       <EmojiPicker
+         onEmojiClick={(emoji) => hanldeEmojiSelect(emoji,"about")}
+       />
+     </div>
+  ) }
+
             </div>
 
 
