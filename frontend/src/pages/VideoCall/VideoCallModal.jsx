@@ -2,7 +2,7 @@ import React, { use, useEffect, useMemo, useRef } from 'react'
 import useVideoCallStore from '../../store/videoCallStore';
 import useUserStore from '../../store/useUserStore';
 import useThemeStore from '../../store/themeStore';
-import { FaMicrophone, FaMicrophoneSlash, FaPhoneSlash, FaTimes, FaVideo } from 'react-icons/fa';
+import { FaMicrophone, FaMicrophoneSlash, FaPhoneSlash, FaTimes, FaVideo, FaVideoSlash } from 'react-icons/fa';
 
 const VideoCallModal = ({ socket }) => {
     const localVideoRef = useRef(null);
@@ -106,6 +106,8 @@ const VideoCallModal = ({ socket }) => {
             console.log("local meadia tsream ", stream.getTracks());
 
             setLocalStream(stream)
+            return stream;
+
         } catch (error) {
             console.error("Media error", error)
             throw error;
@@ -125,21 +127,39 @@ const VideoCallModal = ({ socket }) => {
         }
 
         //handle ice candidate
+   pc.onicecandidate = (event) => {
+    if (event.candidate && socket) {
+        const participantId =
+            currentCall?.participantId || incomingCall?.callerId;
 
-        pc.onicecandidate = (event) => {
-            if (event.candidate && socket) {
-                const participantId = currentCall?.participantId || incomingCall?.callerId;
-                const callId = currentCall?.callId || incomingCall?.callId;
+        const callId =
+            currentCall?.callId || incomingCall?.callId;
 
-                if (participantId, callId) {
-                    socket.emit("webrtc_ice_candidate", {
-                        candidate: event.candidate,
-                        receiverId: event.participantId,
-                        callId: callId
-                    })
-                }
-            }
-        }
+        if (!participantId || !callId) return;
+
+        socket.emit("webrtc_ice_candidate", {
+            candidate: event.candidate,
+            receiverId: participantId, // ✅ CORRECT
+            callId
+        });
+    }
+};
+
+
+        // pc.onicecandidate = (event) => {
+        //     if (event.candidate && socket) {
+        //         const participantId = currentCall?.participantId || incomingCall?.callerId;
+        //         const callId = currentCall?.callId || incomingCall?.callId;
+
+        //         if (participantId, callId) {
+        //             socket.emit("webrtc_ice_candidate", {
+        //                 candidate: event.candidate,
+        //                 receiverId: event.participantId,
+        //                 callId: callId
+        //             })
+        //         }
+        //     }
+        // }
 
         //handle remote stream
 
@@ -186,7 +206,7 @@ const VideoCallModal = ({ socket }) => {
 
             //get media
             const stream = await InitializeMedia(callType === 'video');
-
+        console.log("Caller media stream obtained:", stream);
             //craete peer connection with offer
             const pc = createPeerConnection(stream, "CALLER");
 
@@ -222,7 +242,7 @@ const VideoCallModal = ({ socket }) => {
             const stream = await InitializeMedia(callType === 'video');
 
             //craete peer connection with offer
-            createPeerConnection(stream, "RECEIVER");
+            const pc = createPeerConnection(stream, "RECEIVER");
 
             socket.emit("accept_call", {
                 callerId: incomingCall?.callerId,
@@ -283,7 +303,7 @@ const VideoCallModal = ({ socket }) => {
         if (!socket) return;
 
         //call accepted start caller flow
-        const handleCallAccepted = ({ receiverName }) => {
+        const handleCallAccepted = ({receiverName}) => {
             if (currentCall) {
                 setTimeout(() => {
                     InitializeCallerCall();
@@ -314,6 +334,7 @@ const VideoCallModal = ({ socket }) => {
 
                 //create answer
                 const answer = await peerConnection.createAnswer();
+                 console.log("Receiver: Answer created", answer);
                 await peerConnection.setLocalDescription(answer);
                 //send answer back to caller
                 socket.emit("webrtc_answer", {
@@ -323,7 +344,6 @@ const VideoCallModal = ({ socket }) => {
                 })
 
                 console.log("Receiver: Answer send waiting for ice candidates")
-
 
             } catch (error) {
                 console.error("Receiver handling WebRTC offer:", error);
@@ -338,7 +358,7 @@ const VideoCallModal = ({ socket }) => {
                 return;
             }
 
-            if (peerConnection.signalingState === 'closed') {
+            if (peerConnection.signalingState === "closed") {
                 {
                     return;
                 }
@@ -347,7 +367,7 @@ const VideoCallModal = ({ socket }) => {
                     await processQueuedIceCandidates();
                     //check receiver
                     const receivers = peerConnection.getReceivers();
-                    console.log('Receivers:', receivers);
+                    console.log("caller: Peer connection established with receivers:", receivers);
 
                 } catch (error) {
                     console.error("caller answer error", error)
@@ -360,7 +380,7 @@ const VideoCallModal = ({ socket }) => {
 
         //Receiver ICE candidate
 
-        const handleWebRTCIceCandidates = async ({ candidate, senderId }) => {
+        const handleWebRTCIceCandidates = async ({candidate, senderId}) => {
             if (peerConnection && peerConnection.signalingState !== 'closed') {
                 if (peerConnection.remoteDescription) {
                     try {
@@ -389,14 +409,14 @@ const VideoCallModal = ({ socket }) => {
         console.log("Socket event listeners registered");
         //cleanup on unmount
         return () => {
-            if (socket) {
+            
                 socket.off("call_accepted", handleCallAccepted);
                 socket.off("call_rejected", handleCallRejected);
                 socket.off("call_ended", handleCallEnded);
                 socket.off("webrtc_offer", handleWebRTCOffer);
                 socket.off("webrtc_answer", handleWebRTCAnswer);
                 socket.off("webrtc_ice_candidate", handleWebRTCIceCandidates);
-            }
+            
         }
 
 
@@ -420,7 +440,11 @@ const VideoCallModal = ({ socket }) => {
 
 
                             <div className='w-32 h-32 rounded-full bg-gray-300 mx-auto mb-4 overflow-hidden'>
-                                <img src={displayInfo?.avatar} alt={displayInfo?.name} className='w-full h-full object-cover' />
+                                <img src={displayInfo?.avatar} alt={displayInfo?.name} className='w-full h-full object-cover' 
+                                   onError={(e)=>{
+                                    e.target.src = "/placeholder.svg"
+                                   }}
+                                />
 
                             </div>
 
@@ -467,7 +491,11 @@ const VideoCallModal = ({ socket }) => {
                             <div className='w-full h-full bg-gray-800 flex items-center justify-center'>
                                 <div className='text-center'>
                                     <div className='w-32 h-32 rounded-full bg-gray-600 mx-auto mb-4 overflow-hidden'>
-                                        <img src={displayInfo?.avatar} alt={displayInfo?.name} className='w-full h-full object-cover' />
+                                        <img src={displayInfo?.avatar} alt={displayInfo?.name} className='w-full h-full object-cover' 
+                                        onError={(e)=>{
+                                    e.target.src = "/placeholder.svg"
+                                   }}
+                                        />
                                     </div>
                                     <p>
                                         {
@@ -510,20 +538,24 @@ const VideoCallModal = ({ socket }) => {
                         <div className='absolute bottom-4 left-1/2 transform -translate-x-1/2'>
                             <div className='flex space-x-4'>
                                 {callType === 'video' && (
-                                    <button className={`w-12 h-12 rounded-full flex items-center justify-center  transition-colors ${isVideoEnabled ? 'bg-green-500 hover:bg-green-60 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}`}>
-                                        {isVideoEnabled ? <FaVideo className='w-5 h-5 ' /> : <FaPhoneSlash className='w-5 h-5' />}
+                                    <button 
+                                        onClick={toggleVideo}
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center  transition-colors ${isVideoEnabled ? 'bg-green-500 hover:bg-green-60 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}`}>
+                                        {isVideoEnabled ? <FaVideo className='w-5 h-5 ' /> : <FaVideoSlash className='w-5 h-5' />}
                                     </button>
                                 )}
 
-                                <button className={`w-12 h-12 rounded-full flex items-center justify-center  transition-colors ${isAudioEnabled ? 'bg-green-500 hover:bg-green-60 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}`}>
+                                <button 
+                                 onClick={toggleAudio}
+                                className={`w-12 h-12 rounded-full flex items-center justify-center  transition-colors ${isAudioEnabled ? 'bg-green-500 hover:bg-green-60 text-white' : 'bg-red-500 hover:bg-red-600 text-white'}`}>
                                     {isAudioEnabled ? <FaMicrophone className='w-5 h-5 ' /> : <FaMicrophoneSlash className='w-5 h-5' />}
                                 </button>
 
 
                                 <button
                                     onClick={handleEndCall}
-                                    className='w-16 h-16 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white transition-colors'>
-                                    <FaPhoneSlash className='w-6 h-6' />
+                                    className='w-12 h-12 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center text-white transition-colors'>
+                                    <FaPhoneSlash className='w-5 h-5' />
                                 </button>
 
                             </div>
@@ -537,7 +569,7 @@ const VideoCallModal = ({ socket }) => {
                         <button
                             onClick={handleEndCall}
                             className='absolute top-4 right-4  w-8 h-8 bg-gray-500 hover:bg-gray-600 rounded-full flex items-center justify-center text-white transition-colors'>
-                            <FaTimes className='w-6 h-6' />
+                            <FaTimes className='w-5 h-5' />
                         </button>
 
                     )
