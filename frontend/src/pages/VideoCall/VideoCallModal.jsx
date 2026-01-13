@@ -83,6 +83,7 @@ const VideoCallModal = ({ socket }) => {
     // setup the local stream when local stream is change
     useEffect(() => {
         if (localStream && localVideoRef.current) {
+             console.log("Setting local video stream", localStream);
             localVideoRef.current.srcObject = localStream;
         }
     }, [localStream])
@@ -91,6 +92,9 @@ const VideoCallModal = ({ socket }) => {
     //set up the remot evidoe strem when remote stream changes
     useEffect(() => {
         if (remoteStream && remoteVideoRef.current) {
+
+            console.log("Setting remote video stream", remoteStream);
+
             remoteVideoRef.current.srcObject = remoteStream;
         }
     }, [remoteStream])
@@ -139,7 +143,7 @@ const VideoCallModal = ({ socket }) => {
 
         socket.emit("webrtc_ice_candidate", {
             candidate: event.candidate,
-            receiverId: participantId, // ✅ CORRECT
+            receiverId: participantId, 
             callId
         });
     }
@@ -164,6 +168,7 @@ const VideoCallModal = ({ socket }) => {
         //handle remote stream
 
         pc.ontrack = (event) => {
+            console.log(`${role} : Remote track received`, event);
             if (event.streams && event.streams[0]) {
                 setRemoteStream(event.streams[0]);
             } else {
@@ -354,14 +359,12 @@ const VideoCallModal = ({ socket }) => {
         //Receiver answer (caller)
 
         const handleWebRTCAnswer = async ({ answer, senderId, callId }) => {
-            if (!peerConnection) {
-                return;
-            }
-
-            if (peerConnection.signalingState === "closed") {
+            
+            if (!peerConnection || peerConnection.signalingState === "closed") 
                 {
                     return;
                 }
+
                 try {
                     await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
                     await processQueuedIceCandidates();
@@ -373,9 +376,12 @@ const VideoCallModal = ({ socket }) => {
                     console.error("caller answer error", error)
                 }
 
-            }
+            
 
         }
+
+        // This function runs on the CALLER side when the RECEIVER sends back their "answer"
+
 
 
         //Receiver ICE candidate
@@ -480,6 +486,7 @@ const VideoCallModal = ({ socket }) => {
                                 ref={remoteVideoRef}
                                 autoPlay
                                 playsInline
+                                muted = {false}
                                 className={`w-full h-full object-cover bg-gray-800 ${remoteStream ? "block" : "hidden"}`}
                             />
                         )}
@@ -487,7 +494,7 @@ const VideoCallModal = ({ socket }) => {
 
                         {/* avatar /staatus display */}
 
-                        {(!remoteStream || callType !== 'video') && (
+                        {(!remoteStream && callType === 'video') && (
                             <div className='w-full h-full bg-gray-800 flex items-center justify-center'>
                                 <div className='text-center'>
                                     <div className='w-32 h-32 rounded-full bg-gray-600 mx-auto mb-4 overflow-hidden'>
