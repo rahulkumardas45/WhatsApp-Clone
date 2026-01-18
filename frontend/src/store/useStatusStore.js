@@ -60,8 +60,11 @@ const useStatusStore = create(
         fetchStatuses: async(userId)=>{
             set({loading:true, error:null});
             try {
-                 const {data} = await axiosInstance.get("status");
-                    set({statuses:data.statuses, loading:false});
+                 const {data} = await axiosInstance.get("/status");
+
+                 console.log(data)
+                 
+                    set({statuses: Array.isArray(data) ? data : [], loading:false});
 
             } catch (error) {
                 console.error("Error fetching statuses:", error);
@@ -70,46 +73,43 @@ const useStatusStore = create(
         },
 
    // craete status
-   createStatus: async(statusData)=>{
-     set({loading:true, error:null});
+  createStatus: async (statusData) => {
+  set({ loading: true, error: null });
 
-       try {
-        const formData = new FormData();
+  try {
+    const formData = new FormData();
 
-        if(statusData.file){
-            formData.append("media", statusData.file);
-        }
+    if (statusData.file) {
+      formData.append("file", statusData.file); // ✅ FIXED
+    }
 
-        if(statusData.content?.trim()){
-            formData.append("content", statusData.content.trim());
-        }
-        //server call
+    if (statusData.content?.trim()) {
+      formData.append("content", statusData.content.trim());
+    }
 
-        const {data} = await axiosInstance.post('/status', formData, {
-            headers: {
-                "Content-Type": "multipart/form-data"
-            }
-        });
+    const { data } = await axiosInstance.post("/status/create", formData);
 
-        //add to status in local store
+    if (data?.data) {
+      set((state) => ({
+        statuses: Array.isArray(state.statuses)
+          ? state.statuses.some((s) => s._id === data.data._id)
+            ? state.statuses
+            : [data.data, ...state.statuses]
+          : [data.data],
+        loading: false
+      }));
+    }
 
-          if(data.data){
+    return data.data;
+  } catch (error) {
+    set({
+      error: error.response?.data?.message || error.message,
+      loading: false
+    });
+    throw error;
+  }
+},
 
-           set((state)=>({
-               statuses: state.statuses.some((s) => s._id === data.data._id) ? state.statuses : [data.data, ...state.statuses]
-           }))
-
-          }
-
-        
-        return data.data;
-       } catch (error) {
-        console.error("Error creating status:", error);
-        set({error:error.message, loading:false});
-        throw error;
-        
-       }
-    },
 
       // viwew ststus
 
@@ -169,11 +169,15 @@ const useStatusStore = create(
 
      // helper function for grouped ststus
      getGroupedStatus : ()=>{
-        const {statuses} = get();
+        const state  = get();
+
+        const statuses = Array.isArray(state.statuses)
+    ? state.statuses
+    : [];
 
        return statuses.reduce((acc,status)=>{
            const statusUserId  = status.user?._id;
-
+         if (!statusUserId) return acc;
            if(!acc[statusUserId]){
              acc[statusUserId]={
                 id:statusUserId,

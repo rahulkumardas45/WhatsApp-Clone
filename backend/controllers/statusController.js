@@ -8,10 +8,16 @@ const response = require('../utils/responseHandler');
 exports.createStatus = async (req, res) => {
     try {
         const { content, contentType } = req.body;
-        const userId = req.user.userId;
+        const userId = req.user.id;
         const file = req.file;
+        
+      if (!req.user || !req.user.id) {
+  return res.status(401).json({ message: "Unauthorized" });
+}
 
+       console.log("REQ.USER 👉", req.user);
 
+        
         let mediaUrl = null;
         let finalContentType = contentType || 'text';
 
@@ -82,13 +88,11 @@ exports.createStatus = async (req, res) => {
 
         }
 
-
-
         return response(res, 200, "status created  successfully", populatedStatus);
 
     } catch (error) {
         console.error(error);
-        return response(res, 500, "internal server error");
+        return response(res, 500, "internal servvvvvver error");
 
     }
 
