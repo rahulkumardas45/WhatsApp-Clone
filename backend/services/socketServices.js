@@ -3,6 +3,7 @@ const { Server } = require('socket.io');
 const User = require('../models/User');
 const Message = require('../models/Message');
 const handleVideoCallEvent = require('./video-call-events');
+const socketMiddleware = require('../middleware/socketMiddleware');
 
 
 // map to store online users
@@ -23,7 +24,9 @@ const initializeSocket = (server) => {
 
         pingTimeout: 60000, // disconnect intactive users or sockets afetr 60s
     });
-    
+    // middleware
+  io.use(socketMiddleware);
+
     //when the new connections are established
 
     io.on("connection", (socket) => {
@@ -186,19 +189,19 @@ const initializeSocket = (server) => {
 
 
         // add or update reactions on message
-        socket.on( "add_reaction", async ({ messageId, emoji, userId:reactionUserId }) => {
+        socket.on("add_reaction", async ({ messageId, emoji, userId: reactionUserId }) => {
             try {
 
                 const message = await Message.findById(messageId);
                 if (!message) return;
 
-           
-            
+
+
                 const existingIndex = message.reactions.findIndex(
                     (r) => r.user.toString() === reactionUserId
                 )
-              
-         
+
+
                 if (existingIndex > -1) {
                     const existing = message.reactions[existingIndex];
                     if (existing.emoji === emoji) {
@@ -230,7 +233,7 @@ const initializeSocket = (server) => {
                     messageId,
                     reactions: populatedMessage.reactions,
                 }
-               
+
                 const senderSocket = onlineUsers.get(populatedMessage.sender._id.toString());
                 const receiverSocket = onlineUsers.get(populatedMessage.receiver._id.toString());
 
@@ -248,9 +251,9 @@ const initializeSocket = (server) => {
             }
         })
 
-  //handle video call events
+        //handle video call events
 
-   handleVideoCallEvent(socket,io,onlineUsers);
+        handleVideoCallEvent(socket, io, onlineUsers);
 
         // handle user disconnection and mark them offline in db
 
