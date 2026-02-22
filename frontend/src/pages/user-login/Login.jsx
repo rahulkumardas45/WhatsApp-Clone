@@ -135,6 +135,8 @@ const Login = () => {
         }
       } else {
         const response = await sendOtp(phoneNumber, selectedCountry.dialCode, null);
+
+        console.log(response)
         if (response.status === "success") {
           toast.info("OTP is send to your Phone number")
           setUserPhoneData({ phoneNumber, phoneSuffix: selectedCountry.dialCode })
@@ -159,7 +161,7 @@ const Login = () => {
     try {
       setLoading(true)
 
-      if(!userPhoneData) {
+      if (!userPhoneData) {
         throw new Error("Phone or email data is mising")
       }
 
@@ -170,11 +172,11 @@ const Login = () => {
       } else {
         response = await verifyOtp(userPhoneData.phoneNumber, userPhoneData.phoneSuffix, otpString, null);
       }
-      if(response.status === "success") {
+      if (response.status === "success") {
         toast.success("otp verify successfully")
         const token = response.data?.token;
-        localStorage.setItem("auth_token",token)
-       console.log(response)
+        localStorage.setItem("auth_token", token)
+        console.log(response)
 
 
         const user = response.data?.user;
@@ -208,7 +210,7 @@ const Login = () => {
     }
   }
 
-  const onProfileSubmit = async(data) => {
+  const onProfileSubmit = async (data) => {
     try {
       setLoading(true)
       const formData = new FormData();
@@ -221,13 +223,13 @@ const Login = () => {
       }
       const res = await updateUserProfile(formData);
 
-    console.log("PROFILE UPDATE RESPONSE:", res);
+      console.log("PROFILE UPDATE RESPONSE:", res);
 
-    if (res?.status === "success") {
-      toast.success("Welcome back to WhatsApp");
-      resetLoginState();
-      navigate("/", { replace: true })
-    }
+      if (res?.status === "success") {
+        toast.success("Welcome back to WhatsApp");
+        resetLoginState();
+        navigate("/", { replace: true })
+      }
 
     } catch (error) {
       console.log(error)
@@ -437,27 +439,27 @@ const Login = () => {
               )}
             </div>
 
-             {
-                OtpErrors.otp && (
-                  <p className='text-red-500 text-sm '>
-                    {OtpErrors.otp.message}
+            {
+              OtpErrors.otp && (
+                <p className='text-red-500 text-sm '>
+                  {OtpErrors.otp.message}
 
-                  </p>
-                )
-              }
-              <button
+                </p>
+              )
+            }
+            <button
               type='submit'
               className="w-full bg-green-400 text-white py-2 rounded-md hover:bg-green-600 transition" >
               {loading ? <Spinner /> : "Verify Otp"}
             </button>
 
-            <button 
-            type='button'
-            onClick={handleBack}
-            className={`w-full mt-2 ${theme === 'dark' ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"} py-2 rounded-md hover:bg-gray-300 transition flex items-center justify-center`}
+            <button
+              type='button'
+              onClick={handleBack}
+              className={`w-full mt-2 ${theme === 'dark' ? "bg-gray-700 text-gray-300" : "bg-gray-200 text-gray-700"} py-2 rounded-md hover:bg-gray-300 transition flex items-center justify-center`}
             >
-               <FaArrowLeft className='mr-2'/>
-               Wrong number? Go back
+              <FaArrowLeft className='mr-2' />
+              Wrong number? Go back
             </button>
           </form>
         )}
@@ -465,96 +467,96 @@ const Login = () => {
         {step === 3 && (
           <form onSubmit={handleProfileSubmit(onProfileSubmit)} className='space-y-4'>
 
-          <div className='flex flex-col items-center mb-4 '>
-            <div className='relative w-24 h-24 mb-2'>
-              <img 
-              src={profilePicture || selectedAvatar}
-              alt='profile'
-              className='w-full h-full rounded-full object-cover'
-               />
+            <div className='flex flex-col items-center mb-4 '>
+              <div className='relative w-24 h-24 mb-2'>
+                <img
+                  src={profilePicture || selectedAvatar}
+                  alt='profile'
+                  className='w-full h-full rounded-full object-cover'
+                />
 
-               <label 
-               htmlFor='profile-picture'
-               className='absolute bottom-0 right-0 bg-green-500 text-white p-2 rounded-full cursor-pointer hover:bg-green-600 transition duration-300'
-               >
-                <FaPlus className='w-4 h-4'/>
-               </label>
-               <input
-                type='file'
-                id='profile-picture'
-                accept='image/*'
-                onChange={handleFileChange}
-                className='hidden'
-               />
+                <label
+                  htmlFor='profile-picture'
+                  className='absolute bottom-0 right-0 bg-green-500 text-white p-2 rounded-full cursor-pointer hover:bg-green-600 transition duration-300'
+                >
+                  <FaPlus className='w-4 h-4' />
+                </label>
+                <input
+                  type='file'
+                  id='profile-picture'
+                  accept='image/*'
+                  onChange={handleFileChange}
+                  className='hidden'
+                />
+
+              </div>
+
+              <p className={`text-sm ${theme === 'dark' ? "text-gray-300" : "text-gray-600"} mb-2`}>
+                Choose an avatar
+              </p>
+
+              <div className='flex flex-wrap justify-center gap-2'>
+                {
+                  avatars.map((avatar, index) => (
+                    <img
+                      key={index}
+                      src={avatar}
+                      alt={`Avatar ${index + 1}`}
+                      className={`w-12 h-12 rounded-full cursor-pointer transition duration-300 ease-in-out transform hover:scale-110 ${selectedAvatar === avatar ? "ring-2 ring-green-500" : ""}`}
+                      onClick={() => setSelectedAvatar(avatar)}
+                    />
+                  ))
+                }
+
+              </div>
 
             </div>
 
-            <p className={`text-sm ${theme === 'dark' ? "text-gray-300" : "text-gray-600"} mb-2`}>
-              Choose an avatar
-            </p>
+            <div className="relative">
+              <FaUser
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? "text-gray-300" : "text-gray-700"}`}
+              />
+              <input
+                {...profileRegister("username")}
+                type='text'
+                placeholder='username'
+                className={`w-full pl-10 pr-3 py-2 border ${theme === 'dark' ? "bg-gray-700 border-gray-700 text-white" : "bg-white border-gray-300 text-gray-700"} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-lg`}
 
-            <div className='flex flex-wrap justify-center gap-2'>
+              />
               {
-                avatars.map((avatar, index) => (
-                  <img
-                   key={index}
-                   src={avatar}
-                   alt={`Avatar ${index+1}`}
-                   className={`w-12 h-12 rounded-full cursor-pointer transition duration-300 ease-in-out transform hover:scale-110 ${selectedAvatar === avatar ? "ring-2 ring-green-500":"" }`}
-                   onClick={() => setSelectedAvatar(avatar)}
-                  />
-                ))
+                profileErrors.username && (
+                  <p className='text-red-500 text-sm mt-1'>
+                    {
+                      profileErrors.username.message
+                    }
+
+                  </p>
+                )
               }
 
             </div>
 
-          </div>
+            <div className='flex items-center space-x-2'>
+              <input
+                {...profileRegister('agreed')}
+                type='checkbox'
+                className={`rounded ${theme === 'dark' ? "text-green-500 bg-gray-700" : "text-green-500 bg-gray-100"} focus:ring-green-500`}
+              />
+              <label
+                htmlFor='terms'
+                className={`text-sm ${theme === 'dark' ? "text-gray-300" : "text-gray-700"}`}
+              >
+                I agree to the {" "}
+                <a href="#" className='text-red-500 hover:underline'
+                > Terms and Conditions</a>
 
-          <div className="relative">
-            <FaUser
-             className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${theme === 'dark' ? "text-gray-300" : "text-gray-700"}`}
-            />
-            <input
-             {...profileRegister("username")}
-             type='text'
-             placeholder='username'
-             className={`w-full pl-10 pr-3 py-2 border ${theme === 'dark' ? "bg-gray-700 border-gray-700 text-white": "bg-white border-gray-300 text-gray-700"} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-lg`}
+              </label>
 
-            />
+            </div>
+
             {
-              profileErrors.username && (
-                <p className='text-red-500 text-sm mt-1'>
-                  {
-                    profileErrors.username.message
-                  }
-
-                </p>
-              )
-            }
-
-          </div>
-
-          <div className='flex items-center space-x-2'>
-            <input
-              {...profileRegister('agreed')}
-              type='checkbox'
-              className={`rounded ${theme === 'dark' ? "text-green-500 bg-gray-700" : "text-green-500 bg-gray-100"} focus:ring-green-500`}
-            />
-            <label
-            htmlFor='terms' 
-            className={`text-sm ${theme === 'dark' ? "text-gray-300":"text-gray-700"}`}
-            >
-              I agree to the {" "}
-              <a href="#" className='text-red-500 hover:underline'
-              > Terms and Conditions</a>
-
-            </label>
-           
-          </div>
-
-           {
               profileErrors.agreed && (
-                   <p className='text-red-500 text-sm mt-1'>
+                <p className='text-red-500 text-sm mt-1'>
                   {
                     profileErrors.agreed.message
                   }
@@ -562,12 +564,12 @@ const Login = () => {
                 </p>
               )
             }
-         
 
-          <button
+
+            <button
               type='submit'
-              disabled = {!watch("agreed") || loading }
-              className={`w-full bg-green-500 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center text-lg ${loading ? "opacity-50 cursor-not-allowed": ""}`} >
+              disabled={!watch("agreed") || loading}
+              className={`w-full bg-green-500 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center text-lg ${loading ? "opacity-50 cursor-not-allowed" : ""}`} >
               {loading ? <Spinner /> : "Create Profile"}
             </button>
           </form>

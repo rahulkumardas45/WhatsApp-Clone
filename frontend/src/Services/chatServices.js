@@ -3,14 +3,11 @@ import useUserStore from '../store/useUserStore';
 
 let socket = null;
 
-const token = localStorage.getItem("auth_token")
-
 
 export const initializeSocket = () => {
     if (socket) return socket;
 
-
-
+const token = localStorage.getItem("auth_token");
 
     const user = useUserStore.getState().user;
     const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;

@@ -22,44 +22,50 @@ const sendOtp = async (req, res) => {
 
     try {
         if (email) {
-           user  = await User.findOne({ email });
+            user = await User.findOne({ email });
 
             if (!user) {
-                user = await new User({ email })
+                user = new User({ email });
             }
+
             user.emailOtp = otp;
             user.emailOtpExpiry = expiry;
             await user.save();
-            // sent email otp 
-            await sendOtpEmail(email, otp);
 
-            return response(res, 200, "opt send to your email", { email });
+            try {
+                await sendOtpEmail(email, otp);
+            } catch (err) {
+                console.error("EMAIL ERROR 👉", err);
+                return response(res, 500, "Failed to send OTP email");
+            }
+
+            return response(res, 200, "otp sent to your email", { email });
         }
 
         if (!phoneNumber || !phoneSuffix) {
-            return response(res, 400, "phonenumber and phonesuffix are required")
+            return response(res, 400, "phonenumber and phonesuffix are required");
         }
-
 
         const fullphoneNumber = `${phoneSuffix}${phoneNumber}`;
         user = await User.findOne({ phoneNumber });
+
         if (!user) {
-            user = await new User({ phoneNumber, phoneSuffix })
+            user = new User({ phoneNumber, phoneSuffix });
         }
-        // send phone otp
+
+        console.log("TWILIO SERVICE 👉", twilloService);
+
         await twilloService.sendOtptophoneNumber(fullphoneNumber);
         await user.save();
 
-        return response(res, 200, "otp send Successfully", user)
+        return response(res, 200, "otp sent successfully", user);
 
     } catch (error) {
-        console.error(error);
-        return response(res, 500, "Internal server error ")
+        console.error("SEND OTP ERROR 👉", error);
+        return response(res, 500, error.message || "Internal server error");
     }
+};
 
-
-
-}
 
 const verifiedotp = async (req, res) => {
     const { phoneNumber, phoneSuffix, otp, email } = req.body;
@@ -103,14 +109,14 @@ const verifiedotp = async (req, res) => {
         }
 
         const token = generateToken(user?._id);
-        res.cookie("auth_token", token, {
-            httpOnly: true,
-            // secure: process.env.NODE_ENV === 'production',
-            // sameSite: 'strict',
-            maxAge: 365 * 24 * 60 * 60 * 1000
-        });
+        // res.cookie("auth_token", token, {
+        //     httpOnly: true,
+        //     // secure: process.env.NODE_ENV === 'production',
+        //     // sameSite: 'strict',
+        //     maxAge: 365 * 24 * 60 * 60 * 1000
+        // });
 
-        return response(res, 200, "otp verified successfully", { user, token })
+        return response(res, 200, "otp verified successfully", {token, user})
         
     } catch (error) {
         console.error(error);
